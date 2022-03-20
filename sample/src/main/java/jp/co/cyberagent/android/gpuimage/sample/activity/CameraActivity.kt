@@ -42,11 +42,11 @@ class CameraActivity : AppCompatActivity() {
     private val gpuImageView: GPUImageView by lazy { findViewById<GPUImageView>(R.id.surfaceView) }
     private val seekBar: SeekBar by lazy { findViewById<SeekBar>(R.id.seekBar) }
     private val cameraLoader: CameraLoader by lazy {
-        if (Build.VERSION.SDK_INT < 21) {
+//        if (Build.VERSION.SDK_INT < 21) {
             Camera1Loader(this)
-        } else {
-            Camera2Loader(this)
-        }
+//        } else {
+//            Camera2Loader(this)
+//        }
     }
     private var filterAdjuster: FilterAdjuster? = null
 

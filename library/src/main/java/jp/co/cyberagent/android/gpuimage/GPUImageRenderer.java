@@ -73,7 +73,7 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     private Rotation rotation;
     private boolean flipHorizontal;
     private boolean flipVertical;
-    private GPUImage.ScaleType scaleType = GPUImage.ScaleType.CENTER_CROP;
+    private GPUImage.ScaleType scaleType = GPUImage.ScaleType.FIT_WIDTH;
 
     private float backgroundRed = 0;
     private float backgroundGreen = 0;
@@ -296,22 +296,37 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
 
         float[] cube = CUBE;
         float[] textureCords = TextureRotationUtil.getRotation(rotation, flipHorizontal, flipVertical);
-        if (scaleType == GPUImage.ScaleType.CENTER_CROP) {
-            float distHorizontal = (1 - 1 / ratioWidth) / 2;
-            float distVertical = (1 - 1 / ratioHeight) / 2;
-            textureCords = new float[]{
-                    addDistance(textureCords[0], distHorizontal), addDistance(textureCords[1], distVertical),
-                    addDistance(textureCords[2], distHorizontal), addDistance(textureCords[3], distVertical),
-                    addDistance(textureCords[4], distHorizontal), addDistance(textureCords[5], distVertical),
-                    addDistance(textureCords[6], distHorizontal), addDistance(textureCords[7], distVertical),
-            };
-        } else {
-            cube = new float[]{
-                    CUBE[0] / ratioHeight, CUBE[1] / ratioWidth,
-                    CUBE[2] / ratioHeight, CUBE[3] / ratioWidth,
-                    CUBE[4] / ratioHeight, CUBE[5] / ratioWidth,
-                    CUBE[6] / ratioHeight, CUBE[7] / ratioWidth,
-            };
+
+        switch (scaleType) {
+            case FIT_WIDTH:
+                float ratioTempl = ratioHeight;
+                ratioHeight = ratioWidth;
+                ratioWidth = ratioTempl;
+                cube = new float[]{
+                        CUBE[0] / ratioHeight, CUBE[1] / ratioWidth,
+                        CUBE[2] / ratioHeight, CUBE[3] / ratioWidth,
+                        CUBE[4] / ratioHeight, CUBE[5] / ratioWidth,
+                        CUBE[6] / ratioHeight, CUBE[7] / ratioWidth,
+                };
+                break;
+            case FIT_HEIGHT:
+                cube = new float[]{
+                        CUBE[0] / ratioHeight, CUBE[1] / ratioWidth,
+                        CUBE[2] / ratioHeight, CUBE[3] / ratioWidth,
+                        CUBE[4] / ratioHeight, CUBE[5] / ratioWidth,
+                        CUBE[6] / ratioHeight, CUBE[7] / ratioWidth,
+                };
+                break;
+            case CENTER_CROP:
+                float distHorizontal = (1 - 1 / ratioWidth) / 2;
+                float distVertical = (1 - 1 / ratioHeight) / 2;
+                textureCords = new float[]{
+                        addDistance(textureCords[0], distHorizontal), addDistance(textureCords[1], distVertical),
+                        addDistance(textureCords[2], distHorizontal), addDistance(textureCords[3], distVertical),
+                        addDistance(textureCords[4], distHorizontal), addDistance(textureCords[5], distVertical),
+                        addDistance(textureCords[6], distHorizontal), addDistance(textureCords[7], distVertical),
+                };
+                break;
         }
 
         glCubeBuffer.clear();
