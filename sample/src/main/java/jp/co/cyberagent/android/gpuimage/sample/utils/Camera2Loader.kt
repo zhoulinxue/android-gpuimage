@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.ImageFormat
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.Build
@@ -11,6 +12,7 @@ import android.util.Log
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import jp.co.cyberagent.android.gpuimage.GLTextureView
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2Loader(private val activity: Activity) : CameraLoader() {
@@ -68,6 +70,11 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
         return cameraManager.cameraIdList.size > 1
     }
 
+    private var surfaceView: SurfaceTexture? = null;
+    override fun setTexture(surfaceView: SurfaceTexture) {
+        this.surfaceView = surfaceView;
+    }
+
     @SuppressLint("MissingPermission")
     private fun setUpCamera() {
         val cameraId = getCameraId(cameraFacing) ?: return
@@ -106,9 +113,9 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
 
         try {
             cameraInstance?.createCaptureSession(
-                listOf(imageReader!!.surface),
-                CaptureStateCallback(),
-                null
+                    listOf(imageReader!!.surface),
+                    CaptureStateCallback(),
+                    null
             )
         } catch (e: CameraAccessException) {
             Log.e(TAG, "Failed to start camera session")
@@ -121,8 +128,8 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
         }
         val cameraId = getCameraId(cameraFacing) ?: return Size(0, 0)
         val outputSizes = cameraManager.getCameraCharacteristics(cameraId)
-            .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-            ?.getOutputSizes(ImageFormat.YUV_420_888)
+                .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                ?.getOutputSizes(ImageFormat.YUV_420_888)
 
         val orientation = getCameraOrientation()
         val maxPreviewWidth = if (orientation == 90 or 270) viewHeight else viewWidth

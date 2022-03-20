@@ -1,5 +1,9 @@
 package jp.co.cyberagent.android.gpuimage.sample.utils
 
+import android.graphics.SurfaceTexture
+import android.opengl.GLSurfaceView
+import jp.co.cyberagent.android.gpuimage.GLTextureView
+
 
 abstract class CameraLoader {
 
@@ -14,6 +18,8 @@ abstract class CameraLoader {
     abstract fun getCameraOrientation(): Int
 
     abstract fun hasMultipleCamera(): Boolean
+
+    abstract fun setTexture(surfaceView: SurfaceTexture)
 
     fun setOnPreviewFrameListener(onPreviewFrame: (data: ByteArray, width: Int, height: Int) -> Unit) {
         this.onPreviewFrame = onPreviewFrame

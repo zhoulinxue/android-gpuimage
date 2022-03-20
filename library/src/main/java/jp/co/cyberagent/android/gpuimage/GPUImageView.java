@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -43,6 +44,7 @@ import java.util.concurrent.Semaphore;
 
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter;
 import jp.co.cyberagent.android.gpuimage.util.Rotation;
+import jp.co.cyberagent.android.gpuimage.util.ZCameraLog;
 
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_SURFACE_VIEW;
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_TEXTURE_VIEW;
@@ -89,6 +91,10 @@ public class GPUImageView extends FrameLayout {
             gpuImage.setGLSurfaceView((GLSurfaceView) surfaceView);
         }
         addView(surfaceView);
+    }
+
+    public SurfaceTexture getSurfaceView() {
+        return gpuImage.getRenderer().getSurfaceTexture();
     }
 
     @Override
@@ -162,6 +168,7 @@ public class GPUImageView extends FrameLayout {
      * @param height height of camera preview
      */
     public void updatePreviewFrame(byte[] data, int width, int height) {
+        ZCameraLog.d("updatePreviewFrame");
         gpuImage.updatePreviewFrame(data, width, height);
     }
 

@@ -93,6 +93,10 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
         setRotation(Rotation.NORMAL, false, false);
+
+        int[] textures = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        surfaceTexture = new SurfaceTexture(textures[0]);
     }
 
     @Override
@@ -178,9 +182,6 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         runOnDraw(new Runnable() {
             @Override
             public void run() {
-                int[] textures = new int[1];
-                GLES20.glGenTextures(1, textures, 0);
-                surfaceTexture = new SurfaceTexture(textures[0]);
                 try {
                     camera.setPreviewTexture(surfaceTexture);
                     camera.setPreviewCallback(GPUImageRenderer.this);
@@ -224,6 +225,10 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
 
     public void setImageBitmap(final Bitmap bitmap) {
         setImageBitmap(bitmap, true);
+    }
+
+    public SurfaceTexture getSurfaceTexture() {
+        return surfaceTexture;
     }
 
     public void setImageBitmap(final Bitmap bitmap, final boolean recycle) {

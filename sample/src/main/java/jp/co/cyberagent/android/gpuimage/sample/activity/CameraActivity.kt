@@ -16,6 +16,8 @@
 
 package jp.co.cyberagent.android.gpuimage.sample.activity
 
+import android.graphics.SurfaceTexture
+import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -23,6 +25,7 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import jp.co.cyberagent.android.gpuimage.GLTextureView
 import jp.co.cyberagent.android.gpuimage.GPUImageView
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
 import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools
@@ -74,9 +77,12 @@ class CameraActivity : AppCompatActivity() {
                 gpuImageView.setRotation(getRotation(cameraLoader.getCameraOrientation()))
             }
         }
+
         cameraLoader.setOnPreviewFrameListener { data, width, height ->
             gpuImageView.updatePreviewFrame(data, width, height)
         }
+
+        cameraLoader.setTexture(gpuImageView.surfaceView)
         gpuImageView.setRotation(getRotation(cameraLoader.getCameraOrientation()))
         gpuImageView.setRenderMode(GPUImageView.RENDERMODE_CONTINUOUSLY)
     }
