@@ -3,11 +3,11 @@
 package jp.co.cyberagent.android.gpuimage.sample.utils
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.graphics.ImageFormat
 import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
-import android.opengl.GLSurfaceView
 import android.view.Surface
 import jp.co.cyberagent.android.gpuimage.util.ZCameraLog
 import kotlin.math.abs
@@ -39,7 +39,8 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
     }
 
     override fun getCameraOrientation(): Int {
-        val degrees = when (activity.windowManager.defaultDisplay.rotation) {
+        var roatation: Int = activity.windowManager.defaultDisplay.rotation
+        val degrees = when (roatation) {
             Surface.ROTATION_0 -> 0
             Surface.ROTATION_90 -> 90
             Surface.ROTATION_180 -> 180
@@ -47,6 +48,7 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
             else -> 0
         }
 
+        ZCameraLog.d("getCameraOrientation, cameraFacing$cameraFacing , degrees$degrees, roatation$roatation")
         return if (cameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             (90 + degrees) % 360
         } else { // back-facing
@@ -95,7 +97,6 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
         parameters["jpeg-quality"] = 100
         cameraInstance!!.parameters = parameters
         cameraInstance!!.setPreviewCallback { data, camera ->
-            ZCameraLog.e("setPreviewCallback")
             if (data == null || camera == null) {
                 return@setPreviewCallback
             }

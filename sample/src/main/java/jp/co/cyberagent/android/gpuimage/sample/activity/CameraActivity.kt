@@ -36,6 +36,7 @@ import jp.co.cyberagent.android.gpuimage.sample.utils.Camera2Loader
 import jp.co.cyberagent.android.gpuimage.sample.utils.CameraLoader
 import jp.co.cyberagent.android.gpuimage.sample.utils.doOnLayout
 import jp.co.cyberagent.android.gpuimage.util.Rotation
+import jp.co.cyberagent.android.gpuimage.util.ZCameraLog
 
 class CameraActivity : AppCompatActivity() {
 
@@ -43,7 +44,7 @@ class CameraActivity : AppCompatActivity() {
     private val seekBar: SeekBar by lazy { findViewById<SeekBar>(R.id.seekBar) }
     private val cameraLoader: CameraLoader by lazy {
 //        if (Build.VERSION.SDK_INT < 21) {
-            Camera1Loader(this)
+        Camera1Loader(this)
 //        } else {
 //            Camera2Loader(this)
 //        }
@@ -74,7 +75,10 @@ class CameraActivity : AppCompatActivity() {
             }
             setOnClickListener {
                 cameraLoader.switchCamera()
-                gpuImageView.setRotation(getRotation(cameraLoader.getCameraOrientation()))
+
+                var rotation: Rotation = getRotation(cameraLoader.getCameraOrientation())
+                ZCameraLog.d("switchCamera,rotation$rotation")
+                gpuImageView.setRotation(rotation)
             }
         }
 
@@ -108,6 +112,8 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun getRotation(orientation: Int): Rotation {
+        ZCameraLog.d("getRotation,orientation:$orientation")
+
         return when (orientation) {
             90 -> Rotation.ROTATION_90
             180 -> Rotation.ROTATION_180

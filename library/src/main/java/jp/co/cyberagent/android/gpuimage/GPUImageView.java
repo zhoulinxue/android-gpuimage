@@ -168,7 +168,6 @@ public class GPUImageView extends FrameLayout {
      * @param height height of camera preview
      */
     public void updatePreviewFrame(byte[] data, int width, int height) {
-        ZCameraLog.d("updatePreviewFrame");
         gpuImage.updatePreviewFrame(data, width, height);
     }
 

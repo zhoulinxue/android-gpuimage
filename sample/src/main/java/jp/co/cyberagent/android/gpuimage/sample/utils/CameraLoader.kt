@@ -1,8 +1,6 @@
 package jp.co.cyberagent.android.gpuimage.sample.utils
 
 import android.graphics.SurfaceTexture
-import android.opengl.GLSurfaceView
-import jp.co.cyberagent.android.gpuimage.GLTextureView
 
 
 abstract class CameraLoader {
