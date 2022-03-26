@@ -158,7 +158,7 @@ public class GPUImage {
 
     /**
      * Deprecated: Please call
-     * {@link GPUImage#updatePreviewFrame(byte[], int, int)} frame by frame
+     * {@link GPUImage#updatePreviewFrame(boolean, byte[], int, int)} frame by frame
      * <p>
      * Sets the up camera to be connected to GPUImage to get a filtered preview.
      *
@@ -171,7 +171,7 @@ public class GPUImage {
 
     /**
      * Deprecated: Please call
-     * {@link GPUImage#updatePreviewFrame(byte[], int, int)} frame by frame
+     * {@link GPUImage#updatePreviewFrame(boolean, byte[], int, int)} frame by frame
      * <p>
      * Sets the up camera to be connected to GPUImage to get a filtered preview.
      *
@@ -234,8 +234,8 @@ public class GPUImage {
      * @param width  width of camera preview
      * @param height height of camera preview
      */
-    public void updatePreviewFrame(final byte[] data, final int width, final int height) {
-        renderer.onPreviewFrame(data, width, height);
+    public void updatePreviewFrame(boolean isFirstFrame,final byte[] data, final int width, final int height) {
+        renderer.onPreviewFrame(isFirstFrame,data, width, height);
     }
 
     /**
@@ -269,6 +269,10 @@ public class GPUImage {
      */
     public void setRotation(Rotation rotation) {
         renderer.setRotation(rotation);
+    }
+
+    public void setMirror(boolean frontCamera) {
+        renderer.setMirror(frontCamera);
     }
 
     /**

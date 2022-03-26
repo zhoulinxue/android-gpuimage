@@ -1,7 +1,9 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light" />
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar" />
 
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="AppTheme.fullscreen" parent="AppTheme" >
+        <item name="android:windowFullscreen">true</item>
+    </style>
 
 </resources>

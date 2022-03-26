@@ -16,6 +16,7 @@
 
 package jp.co.cyberagent.android.gpuimage.sample.activity
 
+import android.graphics.BlurMaskFilter
 import android.graphics.SurfaceTexture
 import android.opengl.GLSurfaceView
 import android.os.Build
@@ -28,13 +29,12 @@ import androidx.appcompat.app.AppCompatActivity
 import jp.co.cyberagent.android.gpuimage.GLTextureView
 import jp.co.cyberagent.android.gpuimage.GPUImageView
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageGaussianBlurFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSmoothToonFilter
 import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools
 import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools.FilterAdjuster
 import jp.co.cyberagent.android.gpuimage.sample.R
-import jp.co.cyberagent.android.gpuimage.sample.utils.Camera1Loader
-import jp.co.cyberagent.android.gpuimage.sample.utils.Camera2Loader
-import jp.co.cyberagent.android.gpuimage.sample.utils.CameraLoader
-import jp.co.cyberagent.android.gpuimage.sample.utils.doOnLayout
+import jp.co.cyberagent.android.gpuimage.sample.utils.*
 import jp.co.cyberagent.android.gpuimage.util.Rotation
 import jp.co.cyberagent.android.gpuimage.util.ZCameraLog
 
@@ -74,16 +74,24 @@ class CameraActivity : AppCompatActivity() {
                 visibility = View.GONE
             }
             setOnClickListener {
-                cameraLoader.switchCamera()
+                gpuImageView.filter = GPUImageGaussianBlurFilter()
+                cameraLoader.switchCamera(object : SwitchCallback {
+                    override fun onSwitch(isFrontCamera: Boolean) {
+                        var rotation: Rotation = getRotation(cameraLoader.getCameraOrientation())
+                        ZCameraLog.d("switchCamera,rotation$rotation")
+                        gpuImageView.setRotation(rotation)
+                        gpuImageView.setMirror(isFrontCamera)
+                    }
+                })
 
-                var rotation: Rotation = getRotation(cameraLoader.getCameraOrientation())
-                ZCameraLog.d("switchCamera,rotation$rotation")
-                gpuImageView.setRotation(rotation)
             }
         }
 
-        cameraLoader.setOnPreviewFrameListener { data, width, height ->
-            gpuImageView.updatePreviewFrame(data, width, height)
+        cameraLoader.setOnPreviewFrameListener { isFirstFrame, data, width, height ->
+            gpuImageView.updatePreviewFrame(isFirstFrame, data, width, height)
+            if (isFirstFrame) {
+                gpuImageView.filter = GPUImageFilter()
+            }
         }
 
         cameraLoader.setTexture(gpuImageView.surfaceView)

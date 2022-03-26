@@ -167,8 +167,8 @@ public class GPUImageView extends FrameLayout {
      * @param width  width of camera preview
      * @param height height of camera preview
      */
-    public void updatePreviewFrame(byte[] data, int width, int height) {
-        gpuImage.updatePreviewFrame(data, width, height);
+    public void updatePreviewFrame(boolean isFirstFrame,byte[] data, int width, int height) {
+        gpuImage.updatePreviewFrame(isFirstFrame,data, width, height);
     }
 
     /**
@@ -445,6 +445,10 @@ public class GPUImageView extends FrameLayout {
         } else if (surfaceView instanceof GLTextureView) {
             ((GLTextureView) surfaceView).onResume();
         }
+    }
+
+    public void setMirror(boolean frontCamera) {
+        gpuImage.setMirror(frontCamera);
     }
 
     public static class Size {

@@ -38,7 +38,7 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
         releaseCamera()
     }
 
-    override fun switchCamera() {
+    override fun switchCamera(switchCallback: SwitchCallback) {
         cameraFacing = when (cameraFacing) {
             CameraCharacteristics.LENS_FACING_BACK -> CameraCharacteristics.LENS_FACING_FRONT
             CameraCharacteristics.LENS_FACING_FRONT -> CameraCharacteristics.LENS_FACING_BACK
@@ -64,6 +64,10 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
         } else { // back-facing
             (orientation - degrees) % 360
         }
+    }
+
+    override fun isFrontCamera(): Boolean {
+       return (cameraFacing == CameraCharacteristics.LENS_FACING_FRONT)
     }
 
     override fun hasMultipleCamera(): Boolean {
@@ -106,7 +110,7 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
                 ImageReader.newInstance(size.width, size.height, ImageFormat.YUV_420_888, 2).apply {
                     setOnImageAvailableListener({ reader ->
                         val image = reader?.acquireNextImage() ?: return@setOnImageAvailableListener
-                        onPreviewFrame?.invoke(image.generateNV21Data(), image.width, image.height)
+                        onPreviewFrame?.invoke(false,image.generateNV21Data(), image.width, image.height)
                         image.close()
                     }, null)
                 }

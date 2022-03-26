@@ -81,7 +81,7 @@ public class GPUImageGaussianBlurFilter extends GPUImageTwoPassTextureSamplingFi
     protected float blurSize;
 
     public GPUImageGaussianBlurFilter() {
-        this(1f);
+        this(20f);
     }
 
     public GPUImageGaussianBlurFilter(float blurSize) {

@@ -5,13 +5,13 @@ import android.graphics.SurfaceTexture
 
 abstract class CameraLoader {
 
-    protected var onPreviewFrame: ((data: ByteArray, width: Int, height: Int) -> Unit)? = null
+    protected var onPreviewFrame: ((isFirstFram: Boolean, data: ByteArray, width: Int, height: Int) -> Unit)? = null
 
     abstract fun onResume(width: Int, height: Int)
 
     abstract fun onPause()
 
-    abstract fun switchCamera()
+    abstract fun switchCamera(callback: SwitchCallback)
 
     abstract fun getCameraOrientation(): Int
 
@@ -19,7 +19,9 @@ abstract class CameraLoader {
 
     abstract fun setTexture(surfaceView: SurfaceTexture)
 
-    fun setOnPreviewFrameListener(onPreviewFrame: (data: ByteArray, width: Int, height: Int) -> Unit) {
+    fun setOnPreviewFrameListener(onPreviewFrame: (isFirstFram: Boolean,data: ByteArray, width: Int, height: Int) -> Unit) {
         this.onPreviewFrame = onPreviewFrame
     }
+
+    abstract fun isFrontCamera(): Boolean
 }

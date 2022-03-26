@@ -78,6 +78,7 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     private float backgroundRed = 0;
     private float backgroundGreen = 0;
     private float backgroundBlue = 0;
+    private boolean mirror = false;
 
     public GPUImageRenderer(final GPUImageFilter filter) {
         this.filter = filter;
@@ -113,7 +114,6 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         GLES20.glViewport(0, 0, width, height);
         GLES20.glUseProgram(filter.getProgram());
         filter.onOutputSizeChanged(width, height);
-        adjustImageScaling();
         synchronized (surfaceChangedWaiter) {
             surfaceChangedWaiter.notifyAll();
         }
@@ -154,25 +154,26 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
         final Size previewSize = camera.getParameters().getPreviewSize();
-        onPreviewFrame(data, previewSize.width, previewSize.height);
+        onPreviewFrame(false,data, previewSize.width, previewSize.height);
     }
 
-    public void onPreviewFrame(final byte[] data, final int width, final int height) {
+    public void onPreviewFrame(boolean isFirstFrame, final byte[] data, final int width, final int height) {
         if (glRgbBuffer == null) {
             glRgbBuffer = IntBuffer.allocate(width * height);
         }
+
+        if (isFirstFrame) {
+            imageWidth = width;
+            imageHeight = height;
+            adjustImageScaling();
+        }
+
         if (runOnDraw.isEmpty()) {
             runOnDraw(new Runnable() {
                 @Override
                 public void run() {
                     GPUImageNativeLibrary.YUVtoRBGA(data, width, height, glRgbBuffer.array());
                     glTextureId = OpenGlUtils.loadTexture(glRgbBuffer, width, height, glTextureId);
-
-                    if (imageWidth != width) {
-                        imageWidth = width;
-                        imageHeight = height;
-                        adjustImageScaling();
-                    }
                 }
             });
         }
@@ -346,7 +347,6 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
 
     public void setRotation(final Rotation rotation) {
         this.rotation = rotation;
-        adjustImageScaling();
     }
 
     public void setRotation(final Rotation rotation,
@@ -377,6 +377,13 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     protected void runOnDrawEnd(final Runnable runnable) {
         synchronized (runOnDrawEnd) {
             runOnDrawEnd.add(runnable);
+        }
+    }
+
+    public void setMirror(boolean frontCamera) {
+        if ((frontCamera && !mirror) || (!frontCamera && mirror)) {
+            this.mirror = frontCamera;
+            flipHorizontal = !flipHorizontal;
         }
     }
 }

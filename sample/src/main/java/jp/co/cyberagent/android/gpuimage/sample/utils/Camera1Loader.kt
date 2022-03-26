@@ -3,11 +3,11 @@
 package jp.co.cyberagent.android.gpuimage.sample.utils
 
 import android.app.Activity
-import android.content.res.Configuration
 import android.graphics.ImageFormat
 import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
+import android.os.Handler
 import android.view.Surface
 import jp.co.cyberagent.android.gpuimage.util.ZCameraLog
 import kotlin.math.abs
@@ -18,6 +18,11 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
 
     private var cameraInstance: Camera? = null
     private var cameraFacing: Int = Camera.CameraInfo.CAMERA_FACING_BACK
+    private var switchCallback: SwitchCallback? = null
+    private var previewSuc = false
+    private val handler: Handler by lazy {
+        Handler();
+    }
 
     override fun onResume(width: Int, height: Int) {
         setUpCamera()
@@ -27,7 +32,8 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
         releaseCamera()
     }
 
-    override fun switchCamera() {
+    override fun switchCamera(callback: SwitchCallback) {
+        switchCallback = callback
         cameraFacing = when (cameraFacing) {
             Camera.CameraInfo.CAMERA_FACING_FRONT -> Camera.CameraInfo.CAMERA_FACING_BACK
             Camera.CameraInfo.CAMERA_FACING_BACK -> Camera.CameraInfo.CAMERA_FACING_FRONT
@@ -35,7 +41,7 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
         }
 
         releaseCamera()
-        setUpCamera()
+        handler.postDelayed(Runnable { setUpCamera() }, 150)
     }
 
     override fun getCameraOrientation(): Int {
@@ -54,6 +60,10 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
         } else { // back-facing
             (90 - degrees) % 360
         }
+    }
+
+    override fun isFrontCamera(): Boolean {
+        return (cameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT)
     }
 
     override fun hasMultipleCamera(): Boolean {
@@ -100,9 +110,13 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
             if (data == null || camera == null) {
                 return@setPreviewCallback
             }
-            onPreviewFrame?.invoke(data, previewSize.width, previewSize.height)
+
+            var isFirstFrame = !previewSuc
+            previewSuc = true
+            onPreviewFrame?.invoke(isFirstFrame, data, previewSize.width, previewSize.height)
         }
 
+        switchCallback?.onSwitch(isFrontCamera())
         cameraInstance!!.setPreviewTexture(surfaceView)
         ZCameraLog.e("startPreview")
         cameraInstance!!.startPreview()
@@ -131,6 +145,7 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
         cameraInstance!!.setPreviewCallback(null)
         cameraInstance!!.release()
         cameraInstance = null
+        previewSuc = false
     }
 
     private var mRatio: CameraRatio = CameraRatio.SCANLE_4_3

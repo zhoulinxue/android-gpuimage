@@ -5,11 +5,14 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.ExifInterface;
 
 public class SensorProcessor implements SensorEventListener {
     private Context mContext;
+    
     SensorManager sm;
     private int currentRad;
+    private  int rotation;
 
     public SensorProcessor(Context context) {
         this.mContext = context;
@@ -36,10 +39,11 @@ public class SensorProcessor implements SensorEventListener {
         if (ax < 0) {
             rad = 2 * Math.PI - rad;
         }
-//        int uiRot = mView.getRotation();
-//        double uiRad = Math.PI / 2 * uiRot;
-//        rad -= uiRad;
-//        currentRad = (int) (180 * rad / Math.PI);
+
+        int uiRot = rotation;
+        double uiRad = Math.PI / 2 * uiRot;
+        rad -= uiRad;
+        currentRad = (int) (180 * rad / Math.PI);
     }
 
     @Override
@@ -47,9 +51,24 @@ public class SensorProcessor implements SensorEventListener {
 
     }
 
-//    public int getDegree(boolean isFrontCamera) {
-//        return CameraUtil.getPortraitDegree(isFrontCamera, currentRad);
-//    }
+    /**
+     * 获取 ORIENTATION_PORTRAIT 图片旋转角度
+     *
+     * @return
+     */
+    public  int getPortraitDegree(boolean isFrontCamera, int currentRad) {
+        int degree = 0;
+        if (currentRad > 45 && currentRad < 135) {
+            degree = 0;
+        } else if (currentRad < 45 || currentRad > 315) {
+            degree = isFrontCamera ? ExifInterface.ORIENTATION_ROTATE_270 : ExifInterface.ORIENTATION_ROTATE_90;
+        } else if (currentRad > 225 && currentRad < 315) {
+            degree = ExifInterface.ORIENTATION_ROTATE_180;
+        } else {
+            degree = isFrontCamera ? ExifInterface.ORIENTATION_ROTATE_90 : ExifInterface.ORIENTATION_ROTATE_270;
+        }
+        return degree;
+    }
 
     public void destory() {
         sm.unregisterListener(this);
