@@ -16,32 +16,24 @@
 
 package jp.co.cyberagent.android.gpuimage.sample.activity
 
-import android.graphics.BlurMaskFilter
-import android.graphics.SurfaceTexture
-import android.opengl.GLSurfaceView
-import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import jp.co.cyberagent.android.gpuimage.GLTextureView
+import com.bumptech.glide.Glide
 import jp.co.cyberagent.android.gpuimage.GPUImageView
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageGaussianBlurFilter
-import jp.co.cyberagent.android.gpuimage.filter.GPUImageSmoothToonFilter
-import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools
-import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools.FilterAdjuster
 import jp.co.cyberagent.android.gpuimage.sample.R
 import jp.co.cyberagent.android.gpuimage.sample.utils.*
 import jp.co.cyberagent.android.gpuimage.util.Rotation
 import jp.co.cyberagent.android.gpuimage.util.ZCameraLog
+import kotlinx.android.synthetic.main.activity_camera.*
+import java.io.File
 
 class CameraActivity : AppCompatActivity() {
 
     private val gpuImageView: GPUImageView by lazy { findViewById<GPUImageView>(R.id.surfaceView) }
-    private val seekBar: SeekBar by lazy { findViewById<SeekBar>(R.id.seekBar) }
     private val cameraLoader: CameraLoader by lazy {
 //        if (Build.VERSION.SDK_INT < 21) {
         Camera1Loader(this)
@@ -49,27 +41,15 @@ class CameraActivity : AppCompatActivity() {
 //            Camera2Loader(this)
 //        }
     }
-    private var filterAdjuster: FilterAdjuster? = null
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
-        seekBar.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                filterAdjuster?.adjust(progress)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar) {}
-        })
-        findViewById<View>(R.id.button_choose_filter).setOnClickListener {
-            GPUImageFilterTools.showDialog(this) { filter -> switchFilterTo(filter) }
-        }
-        findViewById<View>(R.id.button_capture).setOnClickListener {
+      button_capture.setOnClickListener {
             saveSnapshot()
         }
-        findViewById<View>(R.id.img_switch_camera).run {
+        img_switch_camera.run {
             if (!cameraLoader.hasMultipleCamera()) {
                 visibility = View.GONE
             }
@@ -83,7 +63,6 @@ class CameraActivity : AppCompatActivity() {
                         gpuImageView.setMirror(isFrontCamera)
                     }
                 })
-
             }
         }
 
@@ -113,8 +92,15 @@ class CameraActivity : AppCompatActivity() {
 
     private fun saveSnapshot() {
         val folderName = "GPUImage"
+        var file: File = File(folderName)
+
+        if (!file.exists()) {
+            file.mkdirs()
+        }
+
         val fileName = System.currentTimeMillis().toString() + ".jpg"
         gpuImageView.saveToPictures(folderName, fileName) {
+            Glide.with(this).asBitmap().override(z_thumil_img.height).load(it).into(z_thumil_img)
             Toast.makeText(this, "$folderName/$fileName saved", Toast.LENGTH_SHORT).show()
         }
     }
@@ -127,14 +113,6 @@ class CameraActivity : AppCompatActivity() {
             180 -> Rotation.ROTATION_180
             270 -> Rotation.ROTATION_270
             else -> Rotation.NORMAL
-        }
-    }
-
-    private fun switchFilterTo(filter: GPUImageFilter) {
-        if (gpuImageView.filter == null || gpuImageView.filter!!.javaClass != filter.javaClass) {
-            gpuImageView.filter = filter
-            filterAdjuster = FilterAdjuster(filter)
-            filterAdjuster?.adjust(seekBar.progress)
         }
     }
 }

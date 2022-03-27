@@ -75,7 +75,7 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     private boolean flipVertical;
     private GPUImage.ScaleType scaleType = GPUImage.ScaleType.FIT_WIDTH;
 
-    private float backgroundRed = 0;
+    private float backgroundRed = 1;
     private float backgroundGreen = 0;
     private float backgroundBlue = 0;
     private boolean mirror = false;

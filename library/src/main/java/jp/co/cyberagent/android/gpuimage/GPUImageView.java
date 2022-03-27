@@ -16,6 +16,8 @@
 
 package jp.co.cyberagent.android.gpuimage;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -30,6 +32,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -40,6 +43,8 @@ import android.widget.ProgressBar;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.Semaphore;
 
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter;
@@ -48,6 +53,8 @@ import jp.co.cyberagent.android.gpuimage.util.ZCameraLog;
 
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_SURFACE_VIEW;
 import static jp.co.cyberagent.android.gpuimage.GPUImage.SURFACE_TYPE_TEXTURE_VIEW;
+
+import androidx.core.content.FileProvider;
 
 public class GPUImageView extends FrameLayout {
 
@@ -132,7 +139,7 @@ public class GPUImageView extends FrameLayout {
 
     /**
      * Deprecated: Please call
-     * {@link GPUImageView#updatePreviewFrame(byte[], int, int)} frame by frame
+     * {@link GPUImageView#updatePreviewFrame(boolean,byte[], int, int)} frame by frame
      * <p>
      * Sets the up camera to be connected to GPUImage to get a filtered preview.
      *
@@ -145,7 +152,7 @@ public class GPUImageView extends FrameLayout {
 
     /**
      * Deprecated: Please call
-     * {@link GPUImageView#updatePreviewFrame(byte[], int, int)} frame by frame
+     * {@link GPUImageView#updatePreviewFrame(boolean,byte[], int, int)} frame by frame
      * <p>
      * Sets the up camera to be connected to GPUImage to get a filtered preview.
      *
@@ -297,7 +304,7 @@ public class GPUImageView extends FrameLayout {
      */
     public void saveToPictures(final String folderName, final String fileName,
                                final OnPictureSavedListener listener) {
-        new SaveTask(folderName, fileName, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new SaveTask(getContext(),folderName, fileName, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -316,7 +323,7 @@ public class GPUImageView extends FrameLayout {
     public void saveToPictures(final String folderName, final String fileName,
                                int width, int height,
                                final OnPictureSavedListener listener) {
-        new SaveTask(folderName, fileName, width, height, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new SaveTask(getContext(),folderName, fileName, width, height, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -533,14 +540,16 @@ public class GPUImageView extends FrameLayout {
         private final int height;
         private final OnPictureSavedListener listener;
         private final Handler handler;
+        private Context mContext;
 
-        public SaveTask(final String folderName, final String fileName,
+        public SaveTask(Context context,final String folderName, final String fileName,
                         final OnPictureSavedListener listener) {
-            this(folderName, fileName, 0, 0, listener);
+            this(context,folderName, fileName, 0, 0, listener);
         }
 
-        public SaveTask(final String folderName, final String fileName, int width, int height,
+        public SaveTask(Context context,final String folderName, final String fileName, int width, int height,
                         final OnPictureSavedListener listener) {
+            this.mContext = context;
             this.folderName = folderName;
             this.fileName = fileName;
             this.width = width;
@@ -561,33 +570,99 @@ public class GPUImageView extends FrameLayout {
         }
 
         private void saveImage(final String folderName, final String fileName, final Bitmap image) {
-            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File path = mContext.getCacheDir();
             File file = new File(path, folderName + "/" + fileName);
             try {
                 file.getParentFile().mkdirs();
-                image.compress(Bitmap.CompressFormat.JPEG, 80, new FileOutputStream(file));
-                MediaScannerConnection.scanFile(getContext(),
-                        new String[]{
-                                file.toString()
-                        }, null,
-                        new MediaScannerConnection.OnScanCompletedListener() {
-                            @Override
-                            public void onScanCompleted(final String path, final Uri uri) {
-                                if (listener != null) {
-                                    handler.post(new Runnable() {
+                image.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(file));
+                if (listener != null) {
+                    handler.post(new Runnable() {
 
-                                        @Override
-                                        public void run() {
-                                            listener.onPictureSaved(uri);
-                                        }
-                                    });
-                                }
-                            }
-                        });
+                        @Override
+                        public void run() {
+                            listener.onPictureSaved(toUri(mContext,file.getAbsolutePath()));
+                        }
+                    });
+                }
+                updatePhotoAlbum(mContext, file);//更新图库
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 保存图片到相册
+     *
+     * @param context
+     * @param data
+     * @return
+     * @throws IOException
+     */
+    public static Uri saveImage(Context context, byte[] data, String path) throws IOException {
+        Uri uri = null;
+        String name = path + System.currentTimeMillis() + ".jpg";
+        ZCameraLog.e("saveImageData, api > 29:  " + (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM);
+            ContentResolver contentResolver = context.getContentResolver();
+            uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            try {
+                OutputStream out = contentResolver.openOutputStream(uri);
+                out.write(data);
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            File eFile = Environment.getExternalStorageDirectory();
+            File mDirectory = new File(eFile.toString() + File.separator + path);
+            if (!mDirectory.exists()) {
+                mDirectory.mkdirs();
+            }
+            File imageFile = new File(mDirectory, name);
+            FileOutputStream out;
+            out = new FileOutputStream(imageFile);
+            out.write(data);
+            uri = toUri(context, imageFile.getAbsolutePath());
+            updatePhotoAlbum(context, imageFile);//更新图库
+            out.close();
+        }
+        return uri;
+    }
+
+    /**
+     * 根据文件 地址 获取 uri
+     *
+     * @param context
+     * @param filePath
+     * @return
+     */
+    public static Uri toUri(Context context, String filePath) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return FileProvider.getUriForFile(context, context.getApplicationInfo().packageName + ".provider", new File(filePath));
+        }
+        return Uri.fromFile(new File(filePath));
+    }
+
+    /**
+     * 兼容android 10
+     * 更新图库
+     *
+     * @param mContext
+     * @param file
+     */
+    private static void updatePhotoAlbum(Context mContext, File file) {
+        MediaScannerConnection.scanFile(mContext.getApplicationContext(), new String[]{file.getAbsolutePath()}, new String[]{"image/jpeg"}, new MediaScannerConnection.OnScanCompletedListener() {
+            @Override
+            public void onScanCompleted(String path, Uri uri) {
+
+            }
+        });
+
     }
 
     public interface OnPictureSavedListener {
