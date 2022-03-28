@@ -77,6 +77,7 @@ class Camera2Loader(private val activity: Activity) : BaseCameraLoader() {
     }
 
     override fun releaseCamera() {
+        previewSuc = false
         imageReader?.close()
         cameraInstance?.close()
         captureSession?.close()
@@ -97,7 +98,7 @@ class Camera2Loader(private val activity: Activity) : BaseCameraLoader() {
                 ImageReader.newInstance(size.width, size.height, ImageFormat.YUV_420_888, 2).apply {
                     setOnImageAvailableListener({ reader ->
                         val image = reader?.acquireNextImage() ?: return@setOnImageAvailableListener
-                        onPreviewFrame?.invoke(false, image.generateNV21Data(), image.width, image.height)
+                        onPreviewFrame?.invoke(!previewSuc, image.generateNV21Data(), image.width, image.height)
                         image.close()
                     }, null)
                 }
@@ -135,16 +136,19 @@ class Camera2Loader(private val activity: Activity) : BaseCameraLoader() {
 
     private inner class CameraDeviceCallback : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
+            previewSuc = true
             cameraInstance = camera
             startCaptureSession()
         }
 
         override fun onDisconnected(camera: CameraDevice) {
+            previewSuc = false
             camera.close()
             cameraInstance = null
         }
 
         override fun onError(camera: CameraDevice, error: Int) {
+            previewSuc = false
             camera.close()
             cameraInstance = null
         }

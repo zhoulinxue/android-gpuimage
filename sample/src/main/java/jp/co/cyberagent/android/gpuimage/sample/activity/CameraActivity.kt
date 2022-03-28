@@ -18,6 +18,7 @@ package jp.co.cyberagent.android.gpuimage.sample.activity
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -40,7 +41,7 @@ class CameraActivity : AppCompatActivity() {
     private val gpuImageView: GPUImageView by lazy { findViewById<GPUImageView>(R.id.surfaceView) }
     private val cameraLoader: CameraLoader by lazy {
 //        if (Build.VERSION.SDK_INT < 21) {
-        Camera1Loader(this)
+            Camera1Loader(this)
 //        } else {
 //            Camera2Loader(this)
 //        }
@@ -77,7 +78,9 @@ class CameraActivity : AppCompatActivity() {
             }
         }
 
-        cameraLoader.setTexture(gpuImageView.surfaceView)
+        if (cameraLoader is Camera1Loader) {
+            cameraLoader.setTexture(gpuImageView.surfaceView)
+        }
         gpuImageView.setRotation(getRotation(cameraLoader.getCameraOrientation()))
         gpuImageView.setRenderMode(GPUImageView.RENDERMODE_CONTINUOUSLY)
     }
