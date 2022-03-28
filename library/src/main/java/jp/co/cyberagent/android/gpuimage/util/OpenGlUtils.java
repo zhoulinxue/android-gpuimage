@@ -27,6 +27,7 @@ import java.nio.IntBuffer;
 
 public class OpenGlUtils {
     public static final int NO_TEXTURE = -1;
+    public static final float DEFAULT_BG = 1;
 
     public static int loadTexture(final Bitmap img, final int usedTexId) {
         return loadTexture(img, usedTexId, true);

@@ -54,7 +54,7 @@ import jp.co.cyberagent.android.gpuimage.util.Rotation;
  */
 public class GPUImage {
 
-    public enum ScaleType {CENTER_CROP, FIT_HEIGHT, FIT_WIDTH}
+    public enum ScaleType {CENTER_CROP, INSIDE, STANDERD}
 
     static final int SURFACE_TYPE_SURFACE_VIEW = 0;
     static final int SURFACE_TYPE_TEXTURE_VIEW = 1;

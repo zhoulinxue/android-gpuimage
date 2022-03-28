@@ -16,10 +16,14 @@
 
 package jp.co.cyberagent.android.gpuimage.sample.activity
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import jp.co.cyberagent.android.gpuimage.GPUImageView
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
@@ -46,7 +50,7 @@ class CameraActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
-      button_capture.setOnClickListener {
+        button_capture.setOnClickListener {
             saveSnapshot()
         }
         img_switch_camera.run {
@@ -80,10 +84,33 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        gpuImageView.doOnLayout {
-            cameraLoader.onResume(it.width, it.height)
+        if (!hasCameraPermission() || !hasStoragePermission()) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    CameraActivity.REQUEST_CAMERA
+            )
+        } else {
+            gpuImageView.doOnLayout {
+                cameraLoader.onResume(it.width, it.height)
+            }
         }
     }
+
+    private fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasStoragePermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
 
     override fun onPause() {
         cameraLoader.onPause()
@@ -114,5 +141,26 @@ class CameraActivity : AppCompatActivity() {
             270 -> Rotation.ROTATION_270
             else -> Rotation.NORMAL
         }
+    }
+
+    override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
+    ) {
+        if (requestCode == CameraActivity.REQUEST_CAMERA && grantResults.size == 2
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                && grantResults[1] == PackageManager.PERMISSION_GRANTED
+        ) {
+            gpuImageView.doOnLayout {
+                cameraLoader.onResume(it.width, it.height)
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    companion object {
+        private const val REQUEST_CAMERA = 1
     }
 }

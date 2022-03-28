@@ -30,13 +30,20 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter;
+import jp.co.cyberagent.android.gpuimage.scales.ScalCenterCrop;
+import jp.co.cyberagent.android.gpuimage.scales.ScaleInSide;
+import jp.co.cyberagent.android.gpuimage.scales.ScaleParam;
+import jp.co.cyberagent.android.gpuimage.scales.ScaleStanderd;
+import jp.co.cyberagent.android.gpuimage.scales.TextureScale;
 import jp.co.cyberagent.android.gpuimage.util.OpenGlUtils;
 import jp.co.cyberagent.android.gpuimage.util.Rotation;
 import jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil;
@@ -73,9 +80,10 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     private Rotation rotation;
     private boolean flipHorizontal;
     private boolean flipVertical;
-    private GPUImage.ScaleType scaleType = GPUImage.ScaleType.FIT_WIDTH;
+    private GPUImage.ScaleType scaleType = GPUImage.ScaleType.STANDERD;
+    private Map<String, TextureScale> scals = new HashMap<>();
 
-    private float backgroundRed = 1;
+    private float backgroundRed = OpenGlUtils.DEFAULT_BG;
     private float backgroundGreen = 0;
     private float backgroundBlue = 0;
     private boolean mirror = false;
@@ -84,6 +92,9 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         this.filter = filter;
         runOnDraw = new LinkedList<>();
         runOnDrawEnd = new LinkedList<>();
+        scals.put(GPUImage.ScaleType.CENTER_CROP.toString(), new ScalCenterCrop());
+        scals.put(GPUImage.ScaleType.INSIDE.toString(), new ScaleInSide());
+        scals.put(GPUImage.ScaleType.STANDERD.toString(), new ScaleStanderd());
 
         glCubeBuffer = ByteBuffer.allocateDirect(CUBE.length * 4)
                 .order(ByteOrder.nativeOrder())
@@ -154,7 +165,7 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
         final Size previewSize = camera.getParameters().getPreviewSize();
-        onPreviewFrame(false,data, previewSize.width, previewSize.height);
+        onPreviewFrame(false, data, previewSize.width, previewSize.height);
     }
 
     public void onPreviewFrame(boolean isFirstFrame, final byte[] data, final int width, final int height) {
@@ -295,45 +306,26 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
         float ratioWidth = imageWidthNew / outputWidth;
         float ratioHeight = imageHeightNew / outputHeight;
 
+        ScaleParam param = new ScaleParam(ratioWidth, ratioHeight);
         float[] cube = CUBE;
         float[] textureCords = TextureRotationUtil.getRotation(rotation, flipHorizontal, flipVertical);
 
         switch (scaleType) {
-            case FIT_WIDTH:
-                float ratioTempl = ratioHeight;
-                ratioHeight = ratioWidth;
-                ratioWidth = ratioTempl;
-                cube = new float[]{
-                        CUBE[0] / ratioHeight, CUBE[1] / ratioWidth,
-                        CUBE[2] / ratioHeight, CUBE[3] / ratioWidth,
-                        CUBE[4] / ratioHeight, CUBE[5] / ratioWidth,
-                        CUBE[6] / ratioHeight, CUBE[7] / ratioWidth,
-                };
-                break;
-            case FIT_HEIGHT:
-                cube = new float[]{
-                        CUBE[0] / ratioHeight, CUBE[1] / ratioWidth,
-                        CUBE[2] / ratioHeight, CUBE[3] / ratioWidth,
-                        CUBE[4] / ratioHeight, CUBE[5] / ratioWidth,
-                        CUBE[6] / ratioHeight, CUBE[7] / ratioWidth,
-                };
+            case INSIDE:
+            case STANDERD:
+                param.setBuffers(glCubeBuffer);
+                param.setTargetCoordinate(CUBE);
+                glTextureBuffer.clear();
+                glTextureBuffer.put(textureCords).position(0);
                 break;
             case CENTER_CROP:
-                float distHorizontal = (1 - 1 / ratioWidth) / 2;
-                float distVertical = (1 - 1 / ratioHeight) / 2;
-                textureCords = new float[]{
-                        addDistance(textureCords[0], distHorizontal), addDistance(textureCords[1], distVertical),
-                        addDistance(textureCords[2], distHorizontal), addDistance(textureCords[3], distVertical),
-                        addDistance(textureCords[4], distHorizontal), addDistance(textureCords[5], distVertical),
-                        addDistance(textureCords[6], distHorizontal), addDistance(textureCords[7], distVertical),
-                };
+                param.setBuffers(glTextureBuffer);
+                param.setTargetCoordinate(textureCords);
+                glCubeBuffer.clear();
+                glCubeBuffer.put(cube).position(0);
                 break;
         }
-
-        glCubeBuffer.clear();
-        glCubeBuffer.put(cube).position(0);
-        glTextureBuffer.clear();
-        glTextureBuffer.put(textureCords).position(0);
+        scals.get(scaleType.toString()).onScaleByParam(param);
     }
 
     private float addDistance(float coordinate, float distance) {

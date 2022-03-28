@@ -196,7 +196,7 @@ public class GPUImageFilterGroup extends GPUImageFilter {
                 boolean isNotLast = i < size - 1;
                 if (isNotLast) {
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers[i]);
-                    GLES20.glClearColor(0, 0, 0, 0);
+//                    GLES20.glClearColor(0, 0, 0, 0);
                 }
 
                 if (i == 0) {

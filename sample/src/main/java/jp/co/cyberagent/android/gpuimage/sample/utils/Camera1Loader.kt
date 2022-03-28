@@ -142,8 +142,8 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
     }
 
     private fun releaseCamera() {
-        cameraInstance!!.setPreviewCallback(null)
-        cameraInstance!!.release()
+        cameraInstance?.setPreviewCallback(null)
+        cameraInstance?.release()
         cameraInstance = null
         previewSuc = false
     }
