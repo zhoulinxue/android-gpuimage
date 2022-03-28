@@ -14,35 +14,11 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class Camera1Loader(private val activity: Activity) : CameraLoader() {
+class Camera1Loader(private val activity: Activity) : BaseCameraLoader() {
 
     private var cameraInstance: Camera? = null
     private var cameraFacing: Int = Camera.CameraInfo.CAMERA_FACING_BACK
-    private var switchCallback: SwitchCallback? = null
-    private var previewSuc = false
-    private val handler: Handler by lazy {
-        Handler();
-    }
 
-    override fun onResume(width: Int, height: Int) {
-        setUpCamera()
-    }
-
-    override fun onPause() {
-        releaseCamera()
-    }
-
-    override fun switchCamera(callback: SwitchCallback) {
-        switchCallback = callback
-        cameraFacing = when (cameraFacing) {
-            Camera.CameraInfo.CAMERA_FACING_FRONT -> Camera.CameraInfo.CAMERA_FACING_BACK
-            Camera.CameraInfo.CAMERA_FACING_BACK -> Camera.CameraInfo.CAMERA_FACING_FRONT
-            else -> return
-        }
-
-        releaseCamera()
-        handler.postDelayed(Runnable { setUpCamera() }, 150)
-    }
 
     override fun getCameraOrientation(): Int {
         var roatation: Int = activity.windowManager.defaultDisplay.rotation
@@ -76,7 +52,7 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
 
     private var surfaceView: SurfaceTexture? = null;
 
-    private fun setUpCamera() {
+    override fun setUpCamera() {
         val id = getCurrentCameraId()
         try {
             cameraInstance = getCameraInstance(id)
@@ -122,6 +98,14 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
         cameraInstance!!.startPreview()
     }
 
+    override fun switchCameraId() {
+        cameraFacing = when (cameraFacing) {
+            Camera.CameraInfo.CAMERA_FACING_FRONT -> Camera.CameraInfo.CAMERA_FACING_BACK
+            Camera.CameraInfo.CAMERA_FACING_BACK -> Camera.CameraInfo.CAMERA_FACING_FRONT
+            else -> return
+        }
+    }
+
     private fun getCurrentCameraId(): Int {
         val cameraInfo = Camera.CameraInfo()
         for (id in 0 until Camera.getNumberOfCameras()) {
@@ -141,7 +125,7 @@ class Camera1Loader(private val activity: Activity) : CameraLoader() {
         }
     }
 
-    private fun releaseCamera() {
+    override fun releaseCamera() {
         cameraInstance?.setPreviewCallback(null)
         cameraInstance?.release()
         cameraInstance = null

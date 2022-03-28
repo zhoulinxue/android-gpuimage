@@ -15,37 +15,16 @@ import androidx.annotation.RequiresApi
 import jp.co.cyberagent.android.gpuimage.GLTextureView
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class Camera2Loader(private val activity: Activity) : CameraLoader() {
+class Camera2Loader(private val activity: Activity) : BaseCameraLoader() {
 
     private var cameraInstance: CameraDevice? = null
     private var captureSession: CameraCaptureSession? = null
     private var imageReader: ImageReader? = null
     private var cameraFacing: Int = CameraCharacteristics.LENS_FACING_BACK
-    private var viewWidth: Int = 0
-    private var viewHeight: Int = 0
+
 
     private val cameraManager: CameraManager by lazy {
         activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    }
-
-    override fun onResume(width: Int, height: Int) {
-        viewWidth = width
-        viewHeight = height
-        setUpCamera()
-    }
-
-    override fun onPause() {
-        releaseCamera()
-    }
-
-    override fun switchCamera(switchCallback: SwitchCallback) {
-        cameraFacing = when (cameraFacing) {
-            CameraCharacteristics.LENS_FACING_BACK -> CameraCharacteristics.LENS_FACING_FRONT
-            CameraCharacteristics.LENS_FACING_FRONT -> CameraCharacteristics.LENS_FACING_BACK
-            else -> return
-        }
-        releaseCamera()
-        setUpCamera()
     }
 
     override fun getCameraOrientation(): Int {
@@ -67,7 +46,7 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
     }
 
     override fun isFrontCamera(): Boolean {
-       return (cameraFacing == CameraCharacteristics.LENS_FACING_FRONT)
+        return (cameraFacing == CameraCharacteristics.LENS_FACING_FRONT)
     }
 
     override fun hasMultipleCamera(): Boolean {
@@ -80,7 +59,7 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun setUpCamera() {
+    override fun setUpCamera() {
         val cameraId = getCameraId(cameraFacing) ?: return
         try {
             cameraManager.openCamera(cameraId, CameraDeviceCallback(), null)
@@ -89,7 +68,15 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
         }
     }
 
-    private fun releaseCamera() {
+    override fun switchCameraId() {
+        cameraFacing = when (cameraFacing) {
+            CameraCharacteristics.LENS_FACING_BACK -> CameraCharacteristics.LENS_FACING_FRONT
+            CameraCharacteristics.LENS_FACING_FRONT -> CameraCharacteristics.LENS_FACING_BACK
+            else -> return
+        }
+    }
+
+    override fun releaseCamera() {
         imageReader?.close()
         cameraInstance?.close()
         captureSession?.close()
@@ -110,7 +97,7 @@ class Camera2Loader(private val activity: Activity) : CameraLoader() {
                 ImageReader.newInstance(size.width, size.height, ImageFormat.YUV_420_888, 2).apply {
                     setOnImageAvailableListener({ reader ->
                         val image = reader?.acquireNextImage() ?: return@setOnImageAvailableListener
-                        onPreviewFrame?.invoke(false,image.generateNV21Data(), image.width, image.height)
+                        onPreviewFrame?.invoke(false, image.generateNV21Data(), image.width, image.height)
                         image.close()
                     }, null)
                 }
