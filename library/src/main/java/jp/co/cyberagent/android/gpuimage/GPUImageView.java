@@ -139,7 +139,7 @@ public class GPUImageView extends FrameLayout {
 
     /**
      * Deprecated: Please call
-     * {@link GPUImageView#updatePreviewFrame(boolean,byte[], int, int)} frame by frame
+     * {@link GPUImageView#updatePreviewFrame(boolean, byte[], int, int)} frame by frame
      * <p>
      * Sets the up camera to be connected to GPUImage to get a filtered preview.
      *
@@ -152,7 +152,7 @@ public class GPUImageView extends FrameLayout {
 
     /**
      * Deprecated: Please call
-     * {@link GPUImageView#updatePreviewFrame(boolean,byte[], int, int)} frame by frame
+     * {@link GPUImageView#updatePreviewFrame(boolean, byte[], int, int)} frame by frame
      * <p>
      * Sets the up camera to be connected to GPUImage to get a filtered preview.
      *
@@ -174,8 +174,8 @@ public class GPUImageView extends FrameLayout {
      * @param width  width of camera preview
      * @param height height of camera preview
      */
-    public void updatePreviewFrame(boolean isFirstFrame,byte[] data, int width, int height) {
-        gpuImage.updatePreviewFrame(isFirstFrame,data, width, height);
+    public void updatePreviewFrame(boolean isFirstFrame, byte[] data, int width, int height) {
+        gpuImage.updatePreviewFrame(isFirstFrame, data, width, height);
     }
 
     /**
@@ -233,6 +233,16 @@ public class GPUImageView extends FrameLayout {
      */
     public void setRotation(Rotation rotation) {
         gpuImage.setRotation(rotation);
+        requestRender();
+    }
+
+    /**
+     * Sets the rotation of the displayed image with flip options.
+     *
+     * @param rotation new rotation
+     */
+    public void setRotation(Rotation rotation, boolean flipHorizontal, boolean flipVertical) {
+        gpuImage.setRotation(rotation, flipHorizontal, flipVertical);
         requestRender();
     }
 
@@ -304,7 +314,7 @@ public class GPUImageView extends FrameLayout {
      */
     public void saveToPictures(final String folderName, final String fileName,
                                final OnPictureSavedListener listener) {
-        new SaveTask(getContext(),folderName, fileName, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new SaveTask(getContext(), folderName, fileName, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -323,7 +333,7 @@ public class GPUImageView extends FrameLayout {
     public void saveToPictures(final String folderName, final String fileName,
                                int width, int height,
                                final OnPictureSavedListener listener) {
-        new SaveTask(getContext(),folderName, fileName, width, height, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new SaveTask(getContext(), folderName, fileName, width, height, listener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     /**
@@ -542,12 +552,12 @@ public class GPUImageView extends FrameLayout {
         private final Handler handler;
         private Context mContext;
 
-        public SaveTask(Context context,final String folderName, final String fileName,
+        public SaveTask(Context context, final String folderName, final String fileName,
                         final OnPictureSavedListener listener) {
-            this(context,folderName, fileName, 0, 0, listener);
+            this(context, folderName, fileName, 0, 0, listener);
         }
 
-        public SaveTask(Context context,final String folderName, final String fileName, int width, int height,
+        public SaveTask(Context context, final String folderName, final String fileName, int width, int height,
                         final OnPictureSavedListener listener) {
             this.mContext = context;
             this.folderName = folderName;
@@ -580,7 +590,7 @@ public class GPUImageView extends FrameLayout {
 
                         @Override
                         public void run() {
-                            listener.onPictureSaved(toUri(mContext,file.getAbsolutePath()));
+                            listener.onPictureSaved(toUri(mContext, file.getAbsolutePath()));
                         }
                     });
                 }

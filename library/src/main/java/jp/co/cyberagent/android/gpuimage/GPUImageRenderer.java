@@ -173,7 +173,7 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
             glRgbBuffer = IntBuffer.allocate(width * height);
         }
 
-        if (isFirstFrame) {
+        if (isFirstFrame || (imageWidth != width)) {
             imageWidth = width;
             imageHeight = height;
             adjustImageScaling();

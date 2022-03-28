@@ -40,11 +40,11 @@ class CameraActivity : AppCompatActivity() {
 
     private val gpuImageView: GPUImageView by lazy { findViewById<GPUImageView>(R.id.surfaceView) }
     private val cameraLoader: CameraLoader by lazy {
-//        if (Build.VERSION.SDK_INT < 21) {
+        if (Build.VERSION.SDK_INT < 21) {
             Camera1Loader(this)
-//        } else {
-//            Camera2Loader(this)
-//        }
+        } else {
+            Camera2Loader(this)
+        }
     }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,8 +64,13 @@ class CameraActivity : AppCompatActivity() {
                     override fun onSwitch(isFrontCamera: Boolean) {
                         var rotation: Rotation = getRotation(cameraLoader.getCameraOrientation())
                         ZCameraLog.d("switchCamera,rotation$rotation")
-                        gpuImageView.setRotation(rotation)
-                        gpuImageView.setMirror(isFrontCamera)
+
+                        if (cameraLoader is Camera1Loader) {
+                            gpuImageView.setRotation(rotation)
+                            gpuImageView.setMirror(isFrontCamera)
+                        } else {
+                            gpuImageView.setRotation(rotation, false, true)
+                        }
                     }
                 })
             }
