@@ -12,6 +12,7 @@ import android.util.Log
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import com.example.android.camera.utils.getPreviewOutputSize
 import jp.co.cyberagent.android.gpuimage.GLTextureView
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -117,6 +118,13 @@ class Camera2Loader(private val activity: Activity) : BaseCameraLoader() {
     }
 
     private fun chooseOptimalSize(): Size {
+//        val cameraId = getCameraId(cameraFacing) ?: return Size(0, 0)
+//        val outputSizes = cameraManager.getCameraCharacteristics(cameraId)
+//        return getPreviewOutputSize(activity.windowManager.defaultDisplay!!,
+//                outputSizes,
+//                this.javaClass,
+//                ImageFormat.YUV_420_888)
+
         if (viewWidth == 0 || viewHeight == 0) {
             return Size(0, 0)
         }
@@ -130,7 +138,7 @@ class Camera2Loader(private val activity: Activity) : BaseCameraLoader() {
         val maxPreviewHeight = if (orientation == 90 or 270) viewWidth else viewHeight
 
         return outputSizes?.filter {
-            it.width < maxPreviewWidth / 2 && it.height < maxPreviewHeight / 2
+            it.width <= maxPreviewWidth  && it.height <= maxPreviewHeight
         }?.maxBy {
             it.width * it.height
         } ?: Size(PREVIEW_WIDTH, PREVIEW_HEIGHT)

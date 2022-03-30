@@ -97,6 +97,7 @@ public class GPUImageFilter {
     }
 
     public void onDestroy() {
+
     }
 
     public void onOutputSizeChanged(final int width, final int height) {
