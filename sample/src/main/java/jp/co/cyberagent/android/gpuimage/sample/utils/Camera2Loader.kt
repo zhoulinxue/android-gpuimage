@@ -130,7 +130,7 @@ class Camera2Loader(private val activity: Activity) : BaseCameraLoader() {
         val maxPreviewHeight = if (orientation == 90 or 270) viewWidth else viewHeight
 
         return outputSizes?.filter {
-            it.width < maxPreviewWidth / 2 && it.height < maxPreviewHeight / 2
+            it.width <= maxPreviewWidth  && it.height <= maxPreviewHeight
         }?.maxBy {
             it.width * it.height
         } ?: Size(PREVIEW_WIDTH, PREVIEW_HEIGHT)

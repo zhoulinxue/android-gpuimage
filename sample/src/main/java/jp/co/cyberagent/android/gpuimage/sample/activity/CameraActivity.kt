@@ -69,7 +69,7 @@ class CameraActivity : AppCompatActivity() {
                             gpuImageView.setRotation(rotation)
                             gpuImageView.setMirror(isFrontCamera)
                         } else {
-                            gpuImageView.setRotation(rotation, false, true)
+                            gpuImageView.setRotation(rotation, false, isFrontCamera)
                         }
                     }
                 })
@@ -100,6 +100,7 @@ class CameraActivity : AppCompatActivity() {
             )
         } else {
             gpuImageView.doOnLayout {
+                ZCameraLog.e("doOnLayout, width:"+it.width+", height:"+it.height)
                 cameraLoader.onResume(it.width, it.height)
             }
         }
