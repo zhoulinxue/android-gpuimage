@@ -464,10 +464,6 @@ public class GPUImageView extends FrameLayout {
         }
     }
 
-    public void setMirror(boolean frontCamera) {
-        gpuImage.setMirror(frontCamera);
-    }
-
     public static class Size {
         int width;
         int height;

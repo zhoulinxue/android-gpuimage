@@ -47,6 +47,7 @@ import jp.co.cyberagent.android.gpuimage.scales.TextureScale;
 import jp.co.cyberagent.android.gpuimage.util.OpenGlUtils;
 import jp.co.cyberagent.android.gpuimage.util.Rotation;
 import jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil;
+import jp.co.cyberagent.android.gpuimage.util.ZCameraLog;
 
 import static jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil.TEXTURE_NO_ROTATION;
 
@@ -80,7 +81,7 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     private Rotation rotation;
     private boolean flipHorizontal;
     private boolean flipVertical;
-    private GPUImage.ScaleType scaleType = GPUImage.ScaleType.STANDERD;
+    private GPUImage.ScaleType scaleType = GPUImage.ScaleType.CENTER_CROP;
     private Map<String, TextureScale> scals = new HashMap<>();
 
     private float backgroundRed = OpenGlUtils.DEFAULT_BG;
@@ -299,6 +300,8 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
 
         float ratio1 = outputWidth / imageWidth;
         float ratio2 = outputHeight / imageHeight;
+
+        ZCameraLog.e("adjustImageScaling, imageWidth:" + imageWidth + ",imageHeight: " + imageHeight);
         float ratioMax = Math.max(ratio1, ratio2);
         int imageWidthNew = Math.round(imageWidth * ratioMax);
         int imageHeightNew = Math.round(imageHeight * ratioMax);
@@ -326,10 +329,6 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
                 break;
         }
         scals.get(scaleType.toString()).onScaleByParam(param);
-    }
-
-    private float addDistance(float coordinate, float distance) {
-        return coordinate == 0.0f ? distance : 1 - distance;
     }
 
     public void setRotationCamera(final Rotation rotation, final boolean flipHorizontal,
@@ -369,13 +368,6 @@ public class GPUImageRenderer implements GLSurfaceView.Renderer, GLTextureView.R
     protected void runOnDrawEnd(final Runnable runnable) {
         synchronized (runOnDrawEnd) {
             runOnDrawEnd.add(runnable);
-        }
-    }
-
-    public void setMirror(boolean frontCamera) {
-        if ((frontCamera && !mirror) || (!frontCamera && mirror)) {
-            this.mirror = frontCamera;
-            flipHorizontal = !flipHorizontal;
         }
     }
 }

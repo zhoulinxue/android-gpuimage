@@ -271,10 +271,6 @@ public class GPUImage {
         renderer.setRotation(rotation);
     }
 
-    public void setMirror(boolean frontCamera) {
-        renderer.setMirror(frontCamera);
-    }
-
     /**
      * Sets the rotation of the displayed image with flip options.
      *
